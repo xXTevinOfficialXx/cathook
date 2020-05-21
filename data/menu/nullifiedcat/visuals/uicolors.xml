@@ -90,7 +90,7 @@
     </Box>
     <Box padding="12 6 6 6" width="content" height="content" name="Tabs" x="340" y="256">
         <List width="150">
-            <AutoVariable width="fill" target="zk.style.tab-selection.color.border" label="Tab Selection border"/>
+            <AutoVariable width="fill" target="zk.style.tab-selection.color.border" label="Tab selection border"/>
             <AutoVariable width="fill" target="zk.style.tab-button.color.separator" label="Tab separator"/>
             <AutoVariable width="fill" target="zk.style.tab-button.color.selected.background" label="Active background"/>
             <AutoVariable width="fill" target="zk.style.tab-button.color.text.selected" label="Active text"/>

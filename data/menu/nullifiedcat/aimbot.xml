@@ -12,16 +12,16 @@
                 </Select>
             </LabeledObject>
             <AutoVariable width="fill" target="aimbot.silent" label="Silent" tooltip="Stops your crosshair from moving on your screen."/>
-            <LabeledObject width="fill" label="Spectator mode" tooltip="How should aimbot react to spectators?">
+            <LabeledObject width="fill" label="Spectator mode" tooltip="Firstperson: disable if at least one spectator is in firstperson. Spectated: disable if you are being spectated at all.">
                 <Select target="aimbot.spectator-mode">
                     <Option name="Always on" value="0"/>
-                    <Option name="Firstperson" value="1" tooltip="Disable if at least one spectator is in firstperson."/>
-                    <Option name="Spectated" value="2" tooltip="Disable if you are being spectated in first- or thirdperson."/>
+                    <Option name="Firstperson" value="1"/>
+                    <Option name="Spectated" value="2"/>
                 </Select>
             </LabeledObject>
             <AutoVariable width="fill" target="aimbot.slow" label="Slow aimbot" min="0" max="30"/>
-            <AutoVariable width="fill" target="aimbot.fov" label="FOV" tooltip="Restricts the Aimbot to a certain FOV from the crosshair."/>
-            <AutoVariable width="fill" target="aimbot.fov-circle.enable" label="FOV circle" tooltip="Shows the Aimbot's FOV."/>
+            <AutoVariable width="fill" target="aimbot.fov" label="FOV" tooltip="Restricts the aimbot to a certain FOV from the crosshair."/>
+            <AutoVariable width="fill" target="aimbot.fov-circle.enable" label="FOV circle" tooltip="Shows the aimbot's FOV."/>
             <AutoVariable width="fill" target="aimbot.fov-circle.opacity" label="FOV opacity" min="0" max="1" step="0.05"/>
             <AutoVariable width="fill" target="aimbot.can-shoot-only" label="Only shoot when able"/>
             <AutoVariable width="fill" target="aimbot.miss-chance" label="Miss chance" tooltip="% chance the aimbot will miss on purpose."/>
@@ -42,7 +42,7 @@
     </Box>
     <Box padding="12 6 6 6" width="content" height="content" name="Target selection" x="170">
         <List width="150">
-            <LabeledObject width="fill" label="Priority mode">
+            <LabeledObject width="fill" label="Priority mode" tootlip="If multiple enemies are in FOV, who should be targeted.">
                 <Select target="aimbot.priority-mode">
                     <Option name="Smart" value="0"/>
                     <Option name="FOV" value="1"/>
@@ -92,7 +92,7 @@
             <AutoVariable width="fill" target="aimbot.multipoint" label="Multipoint"/>
             <AutoVariable width="fill" target="aimbot.assistance.only" label="Assistance only" tooltip="Aimbot is only active if your mouse has moved in the last half second."/>
             <AutoVariable width="fill" target="aimbot.lock-target" label="Lock target" tooltip="Lock onto a target until they die or leave your fov."/>
-            <AutoVariable width="fill" target="aimbot.target.ignore-non-rage" label="Rage only"/>
+            <AutoVariable width="fill" target="aimbot.target.ignore-non-rage" label="Rage only" tooltip="Aimbot will only activate on players set to RAGE."/>
             <AutoVariable width="fill" target="aimbot.target.stickybomb" label="Aim at stickybombs"/>
             <AutoVariable width="fill" target="aimbot.target.sentry" label="Aim at sentry guns"/>
             <AutoVariable width="fill" target="aimbot.target.other-buildings" label="Aim at other buildings"/>
@@ -113,10 +113,8 @@
     </Box>
     <Box padding="12 6 6 6" width="content" height="content" name="Backtracking" x="340" y="125">
         <List width="150">
-            <AutoVariable width="fill" target="backtrack.enable" label="Enable backtracking" tooltip="Allow hitting enemies in the past."/>
+            <AutoVariable width="fill" target="backtrack.enable" label="Enable backtracking" tooltip="Allow hitting enemies where they were in the past."/>
             <AutoVariable width="fill" target="aimbot.backtrack" label="Aim at backtracking"/>
-            <AutoVariable width="fill" target="misc.ping-reducer.enable" label="Ping reducer"/>
-            <AutoVariable width="fill" target="misc.ping-reducer.target" label="Target ping"/>
             <AutoVariable width="fill" target="backtrack.latency" label="Fake latency" min="0" max="1000" step="25"/>
             <AutoVariable width="fill" target="backtrack.draw" label="Draw backtrack"/>
             <AutoVariable width="fill" target="backtrack.draw-skeleton" label="Draw skeleton"/>
@@ -132,6 +130,8 @@
                     <Option name="Secondary + melee" value="6"/>
                 </Select>
             </LabeledObject>
+            <AutoVariable width="fill" target="misc.ping-reducer.enable" label="Ping reducer"/>
+            <AutoVariable width="fill" target="misc.ping-reducer.target" label="Target ping"/>
         </List>
     </Box>
     <Box padding="12 6 6 6" width="content" height="content" name="Sandvich aimbot" x="170" y="255">

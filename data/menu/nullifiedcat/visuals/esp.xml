@@ -19,7 +19,7 @@
             <AutoVariable width="fill" target="esp.projectile.enemy-only" label="Only enemy projectiles"/>
             <AutoVariable width="fill" target="esp.show.tank" label="Tank ESP"/>
             <AutoVariable width="fill" target="esp.item.money" label="MvM money"/>
-            <AutoVariable width="fill" target="esp.item.money-red" label="MvM red money"/>
+            <AutoVariable width="fill" target="esp.item.money-red" label="MvM red money" tooltip="Red money will automatically be acquired."/>
             <AutoVariable width="fill" target="esp.item.powerup" label="Mannpower powerups"/>
             <AutoVariable width="fill" target="esp.item.spellbook" label="Spellbooks"/>
             <AutoVariable width="fill" target="esp.item.weapons" label="HL2:DM weapons"/>

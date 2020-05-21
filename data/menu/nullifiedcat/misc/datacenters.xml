@@ -1,5 +1,5 @@
 <Tab name="Datacenters" padding="4 4 4 4">
-    <Box height="content" width="content" padding="12 6 6 6">
+    <Box height="content" width="content" padding="12 6 6 6" name="Datacenters">
         <List width="250">
             <AutoVariable width="fill" target="dc.enable" label="Enable datacenter selector"/>
             <AutoVariable width="fill" target="dc.restrict" label="Find only selected regions"/>
