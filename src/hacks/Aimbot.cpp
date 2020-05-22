@@ -168,11 +168,11 @@ static bool CarryingHeatmaker()
 bool aimbotTickFilter(CachedEntity *ent, hacks::tf2::backtrack::BacktrackData tick)
 {
     // FOV check
-    if (*fov > 0.0f)
+    if (fov > 0.0f)
     {
         float fov_scr = GetFov(g_pLocalPlayer->v_OrigViewangles, g_pLocalPlayer->v_Eye, tick.hitboxes.at(0).center);
         // Failed FOV check
-        if (fov_scr > *fov)
+        if (fov_scr > fov)
             return false;
     }
     // Not hitscan, no vischeck needed
