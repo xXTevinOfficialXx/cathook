@@ -745,7 +745,7 @@ bool IsTargetStateGood(CachedEntity *entity)
             else if (!IsVectorVisible(pos, entity->hitboxes.GetHitbox(cd.hitbox)->center, false, ENTITY(sentry)))
                 return false;
         }
-        if (*fov > 0.0f && cd.fov > *fov)
+        if (fov > 0.0f && cd.fov > fov)
             return false;
 
         return true;
@@ -803,7 +803,7 @@ bool IsTargetStateGood(CachedEntity *entity)
             if (!IsVectorVisible(pos, GetBuildingPosition(entity), false, ENTITY(sentry)))
                 return false;
         }
-        if (*fov > 0.0f && cd.fov > *fov)
+        if (fov > 0.0f && cd.fov > fov)
             return false;
 
         return true;
@@ -863,7 +863,7 @@ bool IsTargetStateGood(CachedEntity *entity)
             else if (!IsVectorVisible(pos, entity->m_vecOrigin(), false))
                 return false;
         }
-        if (*fov > 0.0f && cd.fov > *fov)
+        if (fov > 0.0f && cd.fov > fov)
             return false;
 
         return true;
