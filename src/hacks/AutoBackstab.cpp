@@ -34,7 +34,7 @@ int ClosestDistanceHitbox(CachedEntity *target)
     }
     return closest;
 }
-int ClosestDistanceHitbox(hacks::tf2::backtrack::BacktrackData btd)
+int ClosestDistanceHitbox(hacks::shared::backtrack::BacktrackData btd)
 {
     int closest        = -1;
     float closest_dist = FLT_MAX, dist = 0.0f;
@@ -59,29 +59,29 @@ bool angleCheck(CachedEntity *from, CachedEntity *to, std::optional<Vector> targ
 {
     Vector tarAngle = CE_VECTOR(to, netvar.m_angEyeAngles);
 
-    Vector vecToTarget;
+    Vector wsc_spy_to_victim;
     if (target_pos)
-        vecToTarget = *target_pos - from->m_vecOrigin();
+        wsc_spy_to_victim = *target_pos - from->m_vecOrigin();
     else
-        vecToTarget = to->m_vecOrigin() - from->m_vecOrigin();
-    vecToTarget.z = 0;
-    vecToTarget.NormalizeInPlace();
+        wsc_spy_to_victim = to->m_vecOrigin() - from->m_vecOrigin();
+    wsc_spy_to_victim.z = 0;
+    wsc_spy_to_victim.NormalizeInPlace();
 
-    Vector vecOwnerForward;
-    AngleVectors2(VectorToQAngle(from_angle), &vecOwnerForward);
-    vecOwnerForward.z = 0;
-    vecOwnerForward.NormalizeInPlace();
+    Vector eye_spy;
+    AngleVectors2(VectorToQAngle(from_angle), &eye_spy);
+    eye_spy.z = 0;
+    eye_spy.NormalizeInPlace();
 
-    Vector vecTargetForward;
-    AngleVectors2(VectorToQAngle(tarAngle), &vecTargetForward);
-    vecTargetForward.z = 0;
-    vecTargetForward.NormalizeInPlace();
+    Vector eye_victim;
+    AngleVectors2(VectorToQAngle(tarAngle), &eye_victim);
+    eye_victim.z = 0;
+    eye_victim.NormalizeInPlace();
 
-    if (DotProduct(vecToTarget, vecTargetForward) <= 0.0f)
+    if (DotProduct(wsc_spy_to_victim, eye_victim) <= 0.0f)
         return false;
-    if (DotProduct(vecToTarget, vecOwnerForward) <= 0.5f)
+    if (DotProduct(wsc_spy_to_victim, eye_spy) <= 0.5f)
         return false;
-    if (DotProduct(vecOwnerForward, vecTargetForward) <= -0.3f)
+    if (DotProduct(eye_spy, eye_victim) <= -0.3f)
         return false;
     return true;
 }
@@ -90,43 +90,31 @@ static bool angleCheck(CachedEntity *target, std::optional<Vector> target_pos, V
 {
     Vector tarAngle = CE_VECTOR(target, netvar.m_angEyeAngles);
 
-    // Get a vector from owner origin to target origin
-    Vector vecToTarget;
-
-    Vector local_worldspace;
-    VectorLerp(RAW_ENT(LOCAL_E)->GetCollideable()->OBBMins(), RAW_ENT(LOCAL_E)->GetCollideable()->OBBMaxs(), 0.5f, local_worldspace);
-    local_worldspace += LOCAL_E->m_vecOrigin();
+    Vector wsc_spy_to_victim;
     if (target_pos)
-        vecToTarget = *target_pos - local_worldspace;
+        wsc_spy_to_victim = *target_pos - LOCAL_E->m_vecOrigin();
     else
-    {
-        Vector target_worldspace;
-        VectorLerp(RAW_ENT(target)->GetCollideable()->OBBMins(), RAW_ENT(target)->GetCollideable()->OBBMaxs(), 0.5f, target_worldspace);
-        target_worldspace += LOCAL_E->m_vecOrigin();
-        vecToTarget = target_worldspace - local_worldspace;
-    }
+        wsc_spy_to_victim = target->m_vecOrigin() - LOCAL_E->m_vecOrigin();
+    wsc_spy_to_victim.z = 0;
+    wsc_spy_to_victim.NormalizeInPlace();
 
-    vecToTarget.z = 0;
-    vecToTarget.NormalizeInPlace();
+    Vector eye_spy;
+    AngleVectors2(VectorToQAngle(local_angle), &eye_spy);
+    eye_spy.z = 0;
+    eye_spy.NormalizeInPlace();
 
-    // Get owner forward view vector
-    Vector vecOwnerForward;
-    AngleVectors2(VectorToQAngle(local_angle), &vecOwnerForward);
-    vecOwnerForward.z = 0;
-    vecOwnerForward.NormalizeInPlace();
+    Vector eye_victim;
+    AngleVectors2(VectorToQAngle(tarAngle), &eye_victim);
+    eye_victim.z = 0;
+    eye_victim.NormalizeInPlace();
 
-    // Get target forward view vector
-    Vector vecTargetForward;
-    AngleVectors2(VectorToQAngle(tarAngle), &vecTargetForward);
-    vecTargetForward.z = 0;
-    vecTargetForward.NormalizeInPlace();
-
-    // Make sure owner is behind, facing and aiming at target's back
-    float flPosVsTargetViewDot = DotProduct(vecToTarget, vecTargetForward);     // Behind?
-    float flPosVsOwnerViewDot  = DotProduct(vecToTarget, vecOwnerForward);      // Facing?
-    float flViewAnglesDot      = DotProduct(vecTargetForward, vecOwnerForward); // Facestab?
-
-    return (flPosVsTargetViewDot > 0.f && flPosVsOwnerViewDot > 0.5 && flViewAnglesDot > -0.3f);
+    if (DotProduct(wsc_spy_to_victim, eye_victim) <= 0.0f)
+        return false;
+    if (DotProduct(wsc_spy_to_victim, eye_spy) <= 0.5f)
+        return false;
+    if (DotProduct(eye_spy, eye_victim) <= -0.3f)
+        return false;
+    return true;
 }
 
 static bool doLegitBackstab()
@@ -224,79 +212,119 @@ static bool doRageBackstab()
     }
     return false;
 }
-// Make accessible to the filter
-static bool legit_stab = false;
-static Vector newangle_apply;
 
-bool backtrackFilter(CachedEntity *ent, hacks::tf2::backtrack::BacktrackData tick, std::optional<hacks::tf2::backtrack::BacktrackData> &best_tick)
+static bool doBacktrackStab()
 {
     float swingrange = re::C_TFWeaponBaseMelee::GetSwingRange(RAW_ENT(LOCAL_W));
-
-    Vector target_worldspace;
-    VectorLerp(tick.m_vecMins, tick.m_vecMaxs, 0.5f, target_worldspace);
-    target_worldspace += tick.m_vecOrigin;
-    Vector distcheck = target_worldspace;
-    distcheck.z      = g_pLocalPlayer->v_Eye.z;
-
-    // Angle check
-    Vector newangle;
-    if (legit_stab)
-        newangle = g_pLocalPlayer->v_OrigViewangles;
-    else
-        newangle = GetAimAtAngles(g_pLocalPlayer->v_Eye, distcheck);
-    if (!angleCheck(ent, target_worldspace, newangle) && !canFaceStab(ent))
+    CachedEntity *ent;
+    if (hacks::shared::backtrack::iBestTarget < 1)
         return false;
+    // Get the best ent decided by backtrack (no reason to do work twice)
+    ent = ENTITY(hacks::shared::backtrack::iBestTarget);
+    if (!ent->m_bEnemy() || !player_tools::shouldTarget(ent))
+        return false;
+    // Get the ent's backtrack ticks
+    auto &btd = hacks::shared::backtrack::headPositions[ent->m_IDX];
 
-    Vector min = tick.m_vecMins + tick.m_vecOrigin;
-    Vector max = tick.m_vecMaxs + tick.m_vecOrigin;
-    Vector hit;
-
-    // Check if we can hit the enemies hitbox
-    if (hacks::shared::triggerbot::CheckLineBox(min, max, g_pLocalPlayer->v_Eye, GetForwardVector(g_pLocalPlayer->v_Eye, newangle, swingrange * 0.95f), hit))
+    for (int i = 0; i < 66; i++)
     {
-        // Check if this tick is closer
-        if (!best_tick || (*best_tick).m_vecOrigin.DistTo(LOCAL_E->m_vecOrigin()) > tick.m_vecOrigin.DistTo(LOCAL_E->m_vecOrigin()))
+        auto &btp = btd[i];
+        // Check if the backtrack positions are valid
+        if (!hacks::shared::backtrack::ValidTick(btp, ent))
+            continue;
+        Vector distcheck = btp.entorigin;
+        distcheck.z      = g_pLocalPlayer->v_Eye.z;
+        // dont stab while inside the enemy
+        if (distcheck.DistTo(g_pLocalPlayer->v_Eye) < 20.0f)
+            continue;
+        // Get and calculate an  angle to use to backstab the ent
+        auto hitbox = ClosestDistanceHitbox(btp);
+        if (hitbox == -1)
+            continue;
+        Vector newangle = GetAimAtAngles(g_pLocalPlayer->v_Eye, btp.hitboxes.at(hitbox).center);
+        if (!angleCheck(ent, btp.entorigin, newangle) && !canFaceStab(ent))
+            continue;
+        Vector &min = btp.collidable.min;
+        Vector &max = btp.collidable.max;
+        Vector hit;
+        // Check if we can hit the enemies hitbox
+        if (hacks::shared::triggerbot::CheckLineBox(min, max, g_pLocalPlayer->v_Eye, GetForwardVector(g_pLocalPlayer->v_Eye, newangle, swingrange * 0.95f), hit))
         {
-            newangle_apply = newangle;
+            current_user_cmd->tick_count = btp.tickcount;
+            current_user_cmd->viewangles = newangle;
+            current_user_cmd->buttons |= IN_ATTACK;
+            g_pLocalPlayer->bUseSilentAngles = true;
+            *bSendPackets                    = true;
             return true;
         }
     }
-
     return false;
 }
 
-static bool doBacktrackStab(bool legit = false)
+// TODO: Don't duplicate these loops
+static bool doLegitBacktrackStab() // lol
 {
-    CachedEntity *stab_ent = nullptr;
-    hacks::tf2::backtrack::BacktrackData stab_data;
-    // Set for our filter
-    legit_stab = legit;
-    // Get the Best tick
-    for (int i = 0; i <= g_IEngine->GetMaxClients(); i++)
+    float swingrange = re::C_TFWeaponBaseMelee::GetSwingRange(RAW_ENT(LOCAL_W));
+    CachedEntity *ent;
+    if (hacks::shared::backtrack::iBestTarget < 1)
+        return false;
+    ent = ENTITY(hacks::shared::backtrack::iBestTarget);
+    if (!ent->m_bEnemy() || !player_tools::shouldTarget(ent))
+        return false;
+    auto &btd       = hacks::shared::backtrack::headPositions[ent->m_IDX];
+    Vector newangle = g_pLocalPlayer->v_OrigViewangles;
+    std::vector<float> yangles;
+    float best_scr = FLT_MAX;
+    hacks::shared::backtrack::BacktrackData *best_tick;
+    for (int ii = 0; ii < 66; ii++)
     {
-        CachedEntity *ent = ENTITY(i);
-        // Targeting checks
-        if (CE_BAD(ent) || !ent->m_bAlivePlayer() || !ent->m_bEnemy() || !player_tools::shouldTarget(ent))
-            continue;
+        std::vector<float> yangles_tmp;
+        auto &i = btd[ii];
 
-        // Get the best tick for that ent
-        auto tick_data = hacks::tf2::backtrack::getBestTick(ent, backtrackFilter);
-
-        // We found something matching the criterias, break out
-        if (tick_data)
+        Vector distcheck = i.entorigin;
+        distcheck.z      = g_pLocalPlayer->v_Eye.z;
+        if (distcheck.DistTo(g_pLocalPlayer->v_Eye) < best_scr && distcheck.DistTo(g_pLocalPlayer->v_Eye) > 20.0f)
         {
-            stab_data = *tick_data;
-            stab_ent  = ent;
-            break;
+            if (!hacks::shared::backtrack::ValidTick(i, ent))
+                continue;
+            if (!angleCheck(ent, i.entorigin, newangle) && !canFaceStab(ent))
+                continue;
+
+            Vector &min = i.collidable.min;
+            Vector &max = i.collidable.max;
+
+            // Get the min and max for the hitbox
+            Vector minz(fminf(min.x, max.x), fminf(min.y, max.y), fminf(min.z, max.z));
+            Vector maxz(fmaxf(min.x, max.x), fmaxf(min.y, max.y), fmaxf(min.z, max.z));
+
+            // Shrink the hitbox here
+            Vector size = maxz - minz;
+            Vector smod = { size.x * 0.20f, size.y * 0.20f, 0 };
+
+            // Save the changes to the vectors
+            minz += smod;
+            maxz -= smod;
+            maxz.z += 20.0f;
+
+            Vector hit;
+            if (hacks::shared::triggerbot::CheckLineBox(minz, maxz, g_pLocalPlayer->v_Eye, GetForwardVector(g_pLocalPlayer->v_Eye, newangle, swingrange), hit))
+                yangles_tmp.push_back(newangle.y);
+
+            if (!yangles_tmp.empty())
+            {
+                yangles.clear();
+                best_scr  = distcheck.DistTo(g_pLocalPlayer->v_Eye);
+                best_tick = &i;
+                yangles   = yangles_tmp;
+            }
         }
     }
-
-    // We found a good ent
-    if (stab_ent)
+    if (!yangles.empty() && best_tick)
     {
-        hacks::tf2::backtrack::SetBacktrackData(stab_ent, stab_data);
+        newangle.y                   = yangles.at(std::floor((float) yangles.size() / 2));
+        current_user_cmd->tick_count = best_tick->tickcount;
+        current_user_cmd->viewangles = newangle;
         current_user_cmd->buttons |= IN_ATTACK;
-        current_user_cmd->viewangles     = newangle_apply;
         g_pLocalPlayer->bUseSilentAngles = true;
         *bSendPackets                    = true;
         return true;
@@ -321,11 +349,11 @@ void CreateMove()
         doRageBackstab();
         break;
     case 2:
-        if (hacks::tf2::backtrack::isBacktrackEnabled)
+        if (hacks::shared::backtrack::isBacktrackEnabled)
         {
-            if (*hacks::tf2::backtrack::latency <= 190 && doRageBackstab())
+            if (*hacks::shared::backtrack::latency <= 190 && doRageBackstab())
                 break;
-            doBacktrackStab(false);
+            doBacktrackStab();
         }
         else
         {
@@ -333,11 +361,11 @@ void CreateMove()
         }
         break;
     case 3:
-        if (hacks::tf2::backtrack::isBacktrackEnabled)
+        if (hacks::shared::backtrack::isBacktrackEnabled)
         {
-            if (*hacks::tf2::backtrack::latency <= 190 && doLegitBackstab())
+            if (*hacks::shared::backtrack::latency <= 190 && doLegitBackstab())
                 break;
-            doBacktrackStab(true);
+            doLegitBacktrackStab();
         }
         else
         {

@@ -12,13 +12,6 @@
                 </Select>
             </LabeledObject>
             <AutoVariable width="fill" target="aimbot.silent" label="Silent" tooltip="Stops your crosshair from moving on your screen."/>
-            <LabeledObject width="fill" label="Spectator mode" tooltip="Firstperson: disable if at least one spectator is in firstperson. Spectated: disable if you are being spectated at all.">
-                <Select target="aimbot.spectator-mode">
-                    <Option name="Always on" value="0"/>
-                    <Option name="Firstperson" value="1"/>
-                    <Option name="Spectated" value="2"/>
-                </Select>
-            </LabeledObject>
             <AutoVariable width="fill" target="aimbot.slow" label="Slow aimbot" min="0" max="30"/>
             <AutoVariable width="fill" target="aimbot.fov" label="FOV" tooltip="Restricts the aimbot to a certain FOV from the crosshair."/>
             <AutoVariable width="fill" target="aimbot.fov-circle.enable" label="FOV circle" tooltip="Shows the aimbot's FOV."/>
@@ -97,11 +90,11 @@
             <AutoVariable width="fill" target="aimbot.target.sentry" label="Aim at sentry guns"/>
             <AutoVariable width="fill" target="aimbot.target.other-buildings" label="Aim at other buildings"/>
             <AutoVariable width="fill" target="aimbot.target.ignore-cloaked-spies" label="Ignore cloaked spies"/>
-            <AutoVariable width="fill" target="aimbot.target.ignore-vaccinator" label="Ignore vaccinator uber"/>
-            <AutoVariable width="fill" target="aimbot.target.ignore-deadringer" label="Ignore dead ringer spies"/>
+            <AutoVariable width="fill" target="aimbot.target.ignore-vaccinator" label="Ignore Vaccinator uber"/>
+            <AutoVariable width="fill" target="aimbot.target.ignore-deadringer" label="Ignore Dead Ringer spies"/>
         </List>
     </Box>
-    <Box padding="12 6 6 6" width="content" height="content" name="Projectile aimbot" y="225">
+    <Box padding="12 6 6 6" width="content" height="content" name="Projectile aimbot" y="215">
         <List width="150">
             <AutoVariable width="fill" target="aimbot.no-spread" label="No spread" tooltip="Projectiles won't have any spread. Independent of aimbot."/>
             <AutoVariable width="fill" target="aimbot.projectile.enable" label="Enable projectile aimbot"/>
@@ -111,19 +104,29 @@
             <AutoVariable width="fill" target="aimbot.projectile.sticky-autoshoot" label="Sticky threshold"/>
         </List>
     </Box>
-    <Box padding="12 6 6 6" width="content" height="content" name="Backtracking" x="340" y="125">
+    <Box padding="12 6 6 6" width="content" height="content" name="Spectated mode" x="340" y="125">
         <List width="150">
-            <AutoVariable width="fill" target="backtrack.enabled" label="Enable Backtracking" tooltip="Allow hitting enemies in the past."/>
-            <AutoVariable width="fill" target="aimbot.backtrack" label="Aim at Backtracking" tooltip="Aim at Backtrack ticks"/>
-            <AutoVariable width="fill" target="misc.ping-reducer.enable" label="Ping Reducer"/>
-            <AutoVariable width="fill" target="misc.ping-reducer.target" label="Target Ping"/>
-            <AutoVariable width="fill" target="backtrack.latency" label="Fake Latency" min="0" max="1000" step="25"/>
-            <AutoVariable width="fill" target="backtrack.draw" label="Draw Backtrack" tooltip="Draw ticks on screen"/>
-            <AutoVariable width="fill" target="backtrack.chams" label="Backtrack Chams" tooltip="Draw Chams for the ticks (Note that transparent viewmodels make them transparent if the entity being backtracked walks off-screen)"/>
-            <AutoVariable width="fill" target="backtrack.chams.ticks" label="Chams Amount" tooltip="How many ticks to draw (WARNING, this can cause lag)"/>
-            <AutoVariable width="fill" target="backtrack.chams.color" label="Chams Color" tooltip="Color for the chams."/>
-            <AutoVariable width="fill" target="backtrack.chams.color.solid" label="Solid Color" tooltip="Draw a solid color instead of tinting the model"/>
-            <LabeledObject width="fill" label="Backtrack Slots">
+            <LabeledObject width="fill" label="Spectator mode" tooltip="Firstperson: disable if at least one spectator is in firstperson. Spectated: disable if you are being spectated at all.">
+                <Select target="aimbot.spectator-mode">
+                    <Option name="Always on" value="0"/>
+                    <Option name="Firstperson" value="1"/>
+                    <Option name="Spectated" value="2"/>
+                </Select>
+            </LabeledObject>
+            <AutoVariable width="fill" target="aimbot.spectator.enable" label="Aimbot enable" tooltip="Should the aimbot be enabled based on the above?"/>
+            <AutoVariable width="fill" target="aimbot.spectator.fov" label="Spectated FOV" tooltip="FOV for the aimbot when in spectated mode."/>
+            <AutoVariable width="fill" target="aimbot.spectator.slow" label="Spectated slow" tooltip="Smoothing for the aimbot when in spectated mode." min="0" max="30"/>
+        </List>
+    </Box>
+    <Box padding="12 6 6 6" width="content" height="content" name="Backtracking" x="340" y="210">
+        <List width="150">
+            <AutoVariable width="fill" target="backtrack.enable" label="Enable backtracking" tooltip="Allow hitting enemies where they were in the past."/>
+            <AutoVariable width="fill" target="aimbot.backtrack" label="Aim at backtracking"/>
+            <AutoVariable width="fill" target="backtrack.latency" label="Fake latency" min="0" max="1000" step="25"/>
+            <AutoVariable width="fill" target="backtrack.draw" label="Draw backtrack"/>
+            <AutoVariable width="fill" target="backtrack.draw-skeleton" label="Draw skeleton"/>
+            <AutoVariable width="fill" target="backtrack.chams_glow" label="Chams/glow support"/>
+            <LabeledObject width="fill" label="Backtrack slots">
                 <Select target="backtrack.slots">
                     <Option name="All" value="0"/>
                     <Option name="Primary" value="1"/>

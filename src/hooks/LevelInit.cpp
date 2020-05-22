@@ -26,6 +26,8 @@ namespace hooked_methods
 
 DEFINE_HOOKED_METHOD(LevelInit, void, void *this_, const char *name)
 {
+    hacks::shared::backtrack::lastincomingsequencenumber = 0;
+    hacks::shared::backtrack::sequences.clear();
     firstcm = true;
     // nav::init = false;
     playerlist::Save();
