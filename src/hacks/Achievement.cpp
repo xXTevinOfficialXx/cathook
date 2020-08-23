@@ -44,6 +44,8 @@ static settings::Boolean auto_noisemaker{ "misc.auto-noisemaker", "true" };
 #else
 static settings::Boolean auto_noisemaker{ "misc.auto-noisemaker", "false" };
 #endif
+static settings::Boolean equip_unicorn{ "misc.auto-unicorn", "false" };
+static Timer unicorn_cooldown{};
 
 bool checkachmngr()
 {
@@ -166,7 +168,7 @@ CatCommand lock("achievement_lock", "Lock all achievements", Lock);
 CatCommand unlock("achievement_unlock", "Unlock all achievements", Unlock);
 
 static bool accept_notifs;
-static bool equip_hats;
+static bool equip_cat_hats;
 static bool equip;
 std::vector<Autoequip_unlock_list> equip_queue;
 
@@ -192,14 +194,14 @@ static CatCommand get_sniper_items("achievement_sniper", "Get all sniper achieve
 
 static Timer accept_time{};
 static Timer equip_noisemaker{};
-static Timer cooldowm{};
+static Timer cooldown{};
 static Timer cooldown_2{};
 static CatCommand get_best_hats("achievement_cathats", "Get and equip the bencat hats", []() {
     static std::vector<int> bencat_hats = { 1902, 1912, 2006 };
     unlock_achievements_and_accept(bencat_hats);
     hacks::shared::misc::generate_schema();
     hacks::shared::misc::Schema_Reload();
-    equip_hats = true;
+    equip_cat_hats = true;
 });
 
 struct queue_struct
@@ -359,6 +361,10 @@ void Callback(int after, int type)
     }
 }
 
+// 536 is Birthday noisemaker
+// 673 is Christmas noisemaker
+static int noisemaker_id = 536;
+
 void Paint()
 {
     // Start accepting
@@ -368,7 +374,7 @@ void Paint()
         accept_notifs = false;
     }
     // "Trigger/Accept first notification" aka Achievement items
-    if (!accept_time.check(5000) && cooldowm.test_and_set(500))
+    if (!accept_time.check(5000) && cooldown.test_and_set(500))
         g_IEngine->ClientCmd_Unrestricted("cl_trigger_first_notification");
 
     // Noisemaker code
@@ -380,29 +386,24 @@ void Paint()
         auto inv = invmng->GTFPlayerInventory();
 
         // No Noisemaker in inventory?
-        if (!inv->GetFirstItemOfItemDef(673) && !inv->GetFirstItemOfItemDef(536))
+        if (!inv->GetFirstItemOfItemDef(noisemaker_id))
             accept_time.update();
         else
         {
-            bool success = equip_action_item(673, { tf_scout, tf_engineer });
+            bool success = equip_action_item(noisemaker_id, { tf_scout, tf_engineer });
             if (!success)
-            {
-                success = equip_action_item(536, { tf_scout, tf_engineer });
-                if (!success)
-                    logging::Info("Bruh moment while equipping noisemaker");
-            }
+                logging::Info("Bruh moment while equipping noisemaker");
         }
     }
-    // Hat equip code
-    if (equip_hats)
+    // Cat Hat equip code
+    if (equip_cat_hats)
     {
         // If done start accepting notifications, also time out after a while
-        if (accept_time.check(5000) && !accept_time.check(10000) && cooldowm.test_and_set(500))
+        if (accept_time.check(5000) && !accept_time.check(10000) && cooldown.test_and_set(500))
         {
-            // Inventory Manager
             auto invmng = re::CTFInventoryManager::GTFInventoryManager();
-            // Inventory
-            auto inv = invmng->GTFPlayerInventory();
+            auto inv    = invmng->GTFPlayerInventory();
+
             // Frontline field recorder
             auto item_view1 = inv->GetFirstItemOfItemDef(302);
             // Gibus
@@ -418,13 +419,38 @@ void Paint()
                     if (success)
                     {
                         logging::Info("Equipping hats!");
-                        equip_hats = false;
+                        equip_cat_hats = false;
                     }
                 }
             }
         }
         else if (accept_time.check(10000))
-            equip_hats = false;
+            equip_cat_hats = false;
+    }
+    // Unicorn hat equip code
+    if (equip_unicorn)
+    {
+        // Only try once a minute
+        if (unicorn_cooldown.test_and_set(60000))
+        {
+            // Accept notifications
+
+            accept_notifs = true;
+            // Unlock achievement needed for the cinema hat
+            g_IAchievementMgr->AwardAchievement(2006);
+
+            auto invmng = re::CTFInventoryManager::GTFInventoryManager();
+            auto inv    = invmng->GTFPlayerInventory();
+
+            // Frontline field recorder
+            auto frontline_hat = inv->GetFirstItemOfItemDef(302);
+            // Party Hat (Birthday Hat)
+            auto party_hat = inv->GetFirstItemOfItemDef(537);
+
+            // Try to equip
+            if (frontline_hat && party_hat)
+                equip_hats_fn({ 302, 537, -1 }, { tf_scout, tf_engineer });
+        }
     }
     // Equip weapons
     if (equip)
@@ -503,5 +529,15 @@ static InitRoutine init([]() {
 
     EC::Register(EC::CreateMove, CreateMove, "cm_achivement");
     EC::Register(EC::Paint, Paint, "paint_achivement");
+
+    std::time_t theTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::tm *aTime      = std::localtime(&theTime);
+
+    int day   = aTime->tm_mday;
+    int month = aTime->tm_mon + 1; // Month is 0 - 11, add 1 to get a jan-dec 1-12 concept
+
+    // We only want to Use the christmas noisemaker around christmas time, let's use 12th of december+ til 12th of january
+    if ((month == 12 && day >= 12) || (month == 1 && day <= 12))
+        noisemaker_id = 673;
 });
 } // namespace hacks::tf2::achievement
